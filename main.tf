@@ -65,7 +65,7 @@ resource "aws_route" "default_route" {
 }
 
 # create a security group
-resource "aws_security_group" "web_sg" {
+resource "aws_security_group" "vpc_sg" {
     name = "${var.vpc_name}-sg"
     description = "Allow HTTP, MySQL and SSH traffic"
     vpc_id = aws_vpc.my_vpc.id
@@ -103,11 +103,12 @@ resource "aws_instance" "public_instance" {
   instance_type          = var.instance_type
   key_name               = var.key_name
   subnet_id              = aws_subnet.public_subnet.id
-  vpc_security_group_ids = [aws_security_group.my_sg.id]
+  vpc_security_group_ids = [aws_security_group.vpc_sg.id]
 
   tags = {
-    Name = "${var.vpc_name}-public-instance"
+    Name = "${var.vpc_name}-app-instance"
   }
+  depends_on = [aws_security_group.vpc_sg]
 }
 
 # create an EC2 instance in the private subnet
@@ -116,9 +117,10 @@ resource "aws_instance" "private_instance" {
   instance_type          = var.instance_type
   key_name               = var.key_name
   subnet_id              = aws_subnet.private_subnet.id
-  vpc_security_group_ids = [aws_security_group.my_sg.id]
+  vpc_security_group_ids = [aws_security_group.vpc_sg.id]
 
   tags = {
-    Name = "${var.vpc_name}-private-instance"
+    Name = "${var.vpc_name}-db-instance"
   }
+   depends_on = [aws_security_group.vpc_sg]
 }
